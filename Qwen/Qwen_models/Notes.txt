@@ -1,0 +1,38 @@
+The only hard requirement is that the folder acts as a Python package (it contains an __init__.py), because the files use relative imports like from .base import MaisBaseModel.
+The mais/models/ nesting I showed earlier was just a suggestion for where it could live inside a larger project. You can flatten it.
+Minimal working layout (one folder)
+Name the folder whatever you like — models, contracts, etc.
+your_project/
+└── models/                  ← one folder, any name
+    ├── __init__.py          ← REQUIRED (makes it a package)
+    ├── base.py
+    ├── enums.py
+    ├── constants.py
+    ├── types.py
+    ├── config.py
+    ├── master_production.py
+    ├── execution.py
+    ├── results.py
+    ├── manifest.py
+    ├── observability.py
+    └── schema_registry.py
+
+Then import from anywhere in your project like this:
+python
+from models import MasterProduction, ExecutionPlan, RetryPolicy
+
+And generate JSON schemas with:
+python -m models.schema_registry ./schemas
+
+Why __init__.py is required
+The modules use relative imports (from . import constants, from .base import ...). Python only resolves those when the files are inside a package. A folder + __init__.py = package. So:
+✅ All files in one folder with __init__.py → works as-is.
+❌ Files loose in a folder without __init__.py, imported one-by-one (import base) → relative imports break.
+Quick verification
+Drop the files into the folder, then from the parent directory run:
+python -c "from models import MasterProduction; print(MasterProduction.model_json_schema()['title'])"
+
+If it prints MasterProduction, your layout is correct.
+If you insist on no package at all
+You'd have to edit every file and change relative imports to absolute ones (from .base import X → from base import X). That's more work and more fragile, so I recommend keeping the single-folder package instead.
+Bottom line: one folder + __init__.py. No subfolders needed.

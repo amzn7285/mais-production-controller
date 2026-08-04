@@ -1,0 +1,39 @@
+Now the interfaces layer.
+
+Created 7 files
+Created 7 files
+
+Now the application, infrastructure, and config layers.
+
+Resolved forward reference handling through lazy annotation evaluation
+Resolved forward reference handling through lazy annotation evaluation
+
+Now the config layer.
+
+Pivoted dependency management strategy toward pydantic-settings integration
+Pivoted dependency management strategy toward pydantic-settings integration
+
+Now tests package inits, pyproject.toml, README, and .env.example.
+
+Validated implementation approach through dependency verification and syntax testing
+Validated implementation approach through dependency verification and syntax testing
+
+Everything imports cleanly and every interface is correctly non-instantiable. Now let's package it up for delivery.
+
+Ran a command, read a file
+Ran a command, read a file
+
+Production Controller — Step 1 is scaffolded, verified importable, and zipped above. Summary of what's in it:
+
+Layering (Clean Architecture, dependencies point inward):
+infrastructure → application → interfaces → domain
+
+domain/ — enums.py (ProductionStage, AgentType, JobStatus, StageStatus, PublishMode, ProviderCapability), constants.py (retry/timeout defaults, config key names), exceptions.py (full MAISProductionError hierarchy), models.py (frozen Pydantic models: AgentRequest/AgentResponse, JobContext, StageState, ExecutionPlan, ProviderDescriptor, StageConfig, RetryPolicyConfig, plus one plain RetryDecision dataclass for the in-process retry loop).
+interfaces/ — pure ABCs, all async: IProductionAgent, IProvider + IProviderResolver (this is where your fallback-provider pattern from the review lives), IProductionController, IStateStore, IRetryPolicy, IEventPublisher.
+infrastructure/di/container.py — IServiceContainer port (register_singleton/register_factory/resolve), no concrete container yet.
+config/settings.py — ProductionControllerSettings (Pydantic BaseSettings, env-prefixed MAIS_PC_), backend choices are identifiers ("sqlite"), never hardcoded classes.
+application/ — intentionally empty, boundary reserved for Step 2's real Controller implementation.
+
+I sanity-checked it in the sandbox: every module imports cleanly, and every interface correctly raises TypeError if you try to instantiate it directly — confirming there's no accidental logic hiding anywhere.
+
+One thing worth flagging: I treated "Production Controller" as the package name (matching your PRODUCTION_ENGINE.md), scoped under mais.production_controller rather than a bare top-level package, so a future mais.creative_director package can sit alongside it cleanly. Let me know if you want it named differently before Step 2.

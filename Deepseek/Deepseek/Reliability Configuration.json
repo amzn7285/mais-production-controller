@@ -1,0 +1,124 @@
+{
+  "reliability": {
+    "state_management": {
+      "storage_type": "sqlite",
+      "storage_path": "./execution_states.db",
+      "cache_size": 100,
+      "cache_ttl_seconds": 300,
+      "checkpoint_interval_seconds": 30,
+      "max_checkpoints_per_execution": 10
+    },
+    "retry_policies": {
+      "default": {
+        "strategy": "exponential",
+        "max_attempts": 3,
+        "base_delay_seconds": 1.0,
+        "max_delay_seconds": 60.0,
+        "jitter": true
+      },
+      "voice_agent": {
+        "strategy": "exponential",
+        "max_attempts": 5,
+        "base_delay_seconds": 2.0,
+        "max_delay_seconds": 120.0,
+        "jitter": true
+      },
+      "video_agent": {
+        "strategy": "exponential",
+        "max_attempts": 2,
+        "base_delay_seconds": 5.0,
+        "max_delay_seconds": 300.0,
+        "jitter": true
+      },
+      "image_agent": {
+        "strategy": "exponential",
+        "max_attempts": 3,
+        "base_delay_seconds": 1.0,
+        "max_delay_seconds": 60.0,
+        "jitter": true
+      },
+      "metadata_agent": {
+        "strategy": "fixed",
+        "max_attempts": 2,
+        "delay_seconds": 2.0
+      }
+    },
+    "circuit_breakers": {
+      "default": {
+        "failure_threshold": 5,
+        "recovery_timeout_seconds": 60,
+        "half_open_timeout_seconds": 30
+      },
+      "openrouter": {
+        "failure_threshold": 3,
+        "recovery_timeout_seconds": 120,
+        "half_open_timeout_seconds": 60
+      },
+      "replicate": {
+        "failure_threshold": 2,
+        "recovery_timeout_seconds": 180,
+        "half_open_timeout_seconds": 90
+      }
+    },
+    "provider_failover": {
+      "enabled": true,
+      "priority": [
+        "openrouter",
+        "replicate",
+        "elevenlabs",
+        "google_tts"
+      ],
+      "fallback_chain": {
+        "openrouter": ["replicate", "local_fallback"],
+        "replicate": ["openrouter", "local_fallback"],
+        "elevenlabs": ["google_tts", "local_fallback"],
+        "google_tts": ["local_fallback"]
+      }
+    },
+    "timeouts": {
+      "default": 300,
+      "voice_agent": 60,
+      "video_agent": 600,
+      "image_agent": 120,
+      "metadata_agent": 30,
+      "thumbnail_agent": 45,
+      "merge_agent": 180,
+      "qc_agent": 60,
+      "publisher_agent": 120
+    },
+    "checkpointing": {
+      "enabled": true,
+      "save_on_agent_completion": true,
+      "save_on_agent_start": true,
+      "save_on_phase_completion": true,
+      "save_on_error": true
+    },
+    "failure_isolation": {
+      "enabled": true,
+      "max_failures_per_agent": 3,
+      "max_failures_per_domain": 5,
+      "global_failure_threshold": 10,
+      "domain_groups": {
+        "api_agents": ["voice", "image", "video", "metadata", "thumbnail"],
+        "processing_agents": ["scene", "merge", "qc"],
+        "publishing_agents": ["publisher"]
+      }
+    },
+    "recovery": {
+      "max_recovery_attempts": 2,
+      "auto_recover": true,
+      "rollback_on_unrecoverable": true,
+      "preserve_artifacts_on_rollback": true
+    },
+    "monitoring": {
+      "enable_metrics": true,
+      "enable_health_checks": true,
+      "health_check_interval_seconds": 60,
+      "alert_threshold": {
+        "failure_rate": 0.2,
+        "max_consecutive_failures": 3,
+        "cost_threshold": 10.0
+      }
+    }
+  }
+}
